@@ -15,7 +15,7 @@ public class QuesAnsViewController : MonoBehaviour {
 	//Constructor
 	public virtual void Start () {
 		quesAnsList = new QuesAnsList();
-		quesAnsList.setCurrentCount(currentCount);
+		quesAnsList.setUserIndex(currentCount);
 		currQuesAnsPair = quesAnsList.getCurrentQuesAnsPair ();
 		setQuesAnsView ();
 		entryAnim();
@@ -74,12 +74,12 @@ public class QuesAnsViewController : MonoBehaviour {
 	}
 	public virtual void increaseCount(){
 		currentCount++;
-		quesAnsList.setCurrentCount (currentCount);
+		quesAnsList.setUserIndex (currentCount);
 		currQuesAnsPair = quesAnsList.getCurrentQuesAnsPair ();
 	}
 
 
-	public virtual void update(){
+	public virtual void Update(){
 
 	}
 		
