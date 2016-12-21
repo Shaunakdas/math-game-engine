@@ -14,157 +14,61 @@ public class DiagQAViewController : QuesAnsViewController {
 	StringWrapper stringWrapper ;
 	public GameObject diagnosticTestGO;
 	DiagnosticTestController diagnosticTestObject;
+	DiagQANetworkController diagQANetworkObject;
+
 	//Behind the scene
 	UserProfile user;
 
-
 	//GameObject Reference
-	public GameObject testProgressGO;
-	public GameObject questionProgressGO;
-	public GameObject questionTextGO;
-	public GameObject qaPanelGO;
+	public GameObject testProgressGO, questionProgressGO,questionTextGO,qaPanelGO;
+
 	//Prefabs
-	public GameObject ansOption;
-	public GameObject imagePrefab;
-	public GameObject tickImage;
+	public GameObject ansOption, imagePrefab, tickImage;
+
 	GameObject quesImageGO;
 	Texture2D quesTexture;
 
 	// Use this for initialization
 	public override void Start () {
-		//base.Start ();
-		//StartCoroutine(GetQAList());
 		quesAnsList = new QuesAnsList();
 		user = new UserProfile();
 		stringWrapper = new StringWrapper ();
 		diagnosticTestObject = (DiagnosticTestController) diagnosticTestGO.GetComponent(typeof(DiagnosticTestController));
+		diagQANetworkObject = (DiagQANetworkController) gameObject.GetComponent(typeof(DiagQANetworkController));
 		SwipeManager.OnSwipeDetected += OnSwipeDetected;
 	}
+
 	public void getQAListAPI(){
-		StartCoroutine(GetQAList());
 		quesAnsList = new QuesAnsList();
+		StartCoroutine(GetQAList());
 	}
+
+	//API Calls
 	IEnumerator GetQAList() {
-		var standard_id = 4;
-		//string domain = "diagnosticTestObject.getDomainAddress()";
-		string domain = "localhost:3000";
-		//var standard_id = user.getStandard ().getStandardId ();
-		string getQuesListUrl = domain + "/api/diagnostic_tests/get_test.json?standard_id="+standard_id+"&subject_id="+standard_id;
-		UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get (getQuesListUrl);
-		yield return www.Send ();
-
-		if (www.isError) {
-			Debug.Log (www.error);
-		} else {
-			var the_JSON_string = www.downloadHandler.text; 
-			var N = JSON.Parse(the_JSON_string);
-			int questionCount =( N ["questions"].Count);
-			Debug.Log ("Values of diagnostic test id"+N["diagnostic_test_id"].Value);
-			quesAnsList.DisplayId = int.Parse(N ["diagnostic_test_id"].Value);
-			int maxLives = 4;
-			int maxTotalTime = 900;
-			quesAnsList.setMaxParams (maxLives, maxTotalTime);
-			//for loop on standardCount
-			//add standard from API
-			for (int i = 0; i < questionCount; i = i + 1) {
-				string question=N ["questions"][i]["question_text"].Value;
-				string question_image=N ["questions"][i]["question_image"].Value;
-				string hint=""; 
-				string answer_description=N ["questions"][i]["answer"].Value;
-				int listIndex=i;
-				int backendId = int.Parse(N ["questions"][i]["short_choice_question_id"].Value);
-				int opCount = (N ["questions"][i]["answers"].Count);
-				string[] ansOps = new string[opCount];
-				string[] ansOpImgs = new string[opCount];
-				int correctOp = 0;
-				for (int j = 0; j < opCount; j = j + 1) {
-					ansOps [j] = N ["questions"] [i] ["answers"] [j] ["answer_text"].Value;
-					ansOpImgs [j] = N ["questions"] [i] ["answers"] [j] ["image"].Value;
-					
-					if ((N ["questions"] [i] ["answers"] [j] ["correct"].Value)=="true") {
-						correctOp = j;
-					}
-
-				}
-				Answer givenAnswer= new Answer(ansOps,opCount,correctOp,ansOpImgs);
-
-				quesAnsList.add (question, givenAnswer, hint, answer_description,question_image, listIndex, backendId);
-			}
-			setQuesAnsBasedOnIndex (0, true);
-			//diagnosticTestObject.updateAPIStatus ("GetQAList",true);
-		}
-
+		yield return StartCoroutine(diagQANetworkObject.getQAListNetworkCall(quesAnsList));
+		Debug.Log ("quesAnsList view opened");
+		setQuesAnsBasedOnIndex (0);
+		diagnosticTestObject.updateAPIStatus ("GetQAList",diagQANetworkObject.getQAListNetworkCallResponse);
 	}
-
-	IEnumerator PostQuestionAttempt(WWW data){
-		yield return data; // Wait until the download is done
-		if (data.error != null){
-			Debug.Log("There was an error sending request: " + data.error);
-		}else{
-			Debug.Log("WWW Response: " + data.text);
-			diagnosticTestObject.updateAPIStatus ("PostQuestionAttempt",true);
-		}
-	}
-	public void postQuestionAttempt(){
+	IEnumerator postQuestionAttempt(QuesAnsList quesAnsList){
 		diagnosticTestObject.openWaitingPanel ();
-		string postQuesAttemptUrl = diagnosticTestObject.getDomainAddress() + "api/diagnostic_tests/test_attempt";
-		WWW www;
-
-		//Creating header
-		Dictionary<string,string> postHeader = new Dictionary<string,string>();
-		postHeader.Add("Content-Type", "application/json");
-
-		//CreatingJSONNODE
-		JSONNode PostJson = new JSONClass(); // Start with JSONArray or JSONClass
-
-		PostJson["user"]["first_name"] = "shaunak";
-		PostJson["user"]["last_name"] = "das";
-		PostJson["user"]["email"] = "shaunakdas2020@gmail.com";
-		PostJson["user"]["number"] = "9740644522";
-		PostJson["diagnostic_test"]["id"] = quesAnsList.DisplayId.ToString();
-
-		for (var i = 0; i < quesAnsList.QAList.Count; i++) {
-			//Console.WriteLine("Amount is {0} and type is {1}", quesAnsList[i].amount, quesAnsList[i].type);
-
-			PostJson["diagnostic_test"]["short_choice_questions"][quesAnsList.QAList[i].BackendId.ToString()]["time_taken"] = quesAnsList.QAList[i].getUserTimeTaken().ToString();
-			PostJson["diagnostic_test"]["short_choice_questions"][quesAnsList.QAList[i].BackendId.ToString()]["score"] = quesAnsList.QAList[i].getUserScore().ToString();
-		}
-
-		string json_string="";
-		json_string = PostJson.ToString();
-		Debug.Log ("PostQuesAttempt Json" + json_string);
-		// convert json string to byte
-		var formData = System.Text.Encoding.UTF8.GetBytes(json_string);
-
-		www = new WWW(postQuesAttemptUrl, formData, postHeader);
-		StartCoroutine(PostQuestionAttempt(www));
+		yield return StartCoroutine(diagQANetworkObject.postQAListNetworkCall(quesAnsList));
+		diagnosticTestObject.updateAPIStatus ("PostQuestionAttempt",diagQANetworkObject.postQAAttemptNetworkCallResponse);
 	}
-	public void setQuesAnsBasedOnIndex(int index,bool createFlag){
+
+	//Setting up views
+	public void setQuesAnsBasedOnIndex(int index){
 		quesAnsList.setUserIndex(index);
 		QuesAnsPair currQuesAnsPair = quesAnsList.getCurrentQuesAnsPair ();
-		setQuesView (currQuesAnsPair,createFlag);
-		setAnsOpView (currQuesAnsPair,createFlag);
+		setQuesView (currQuesAnsPair);
+		setAnsOpView (currQuesAnsPair);
 		setTestProgressView();
-		setQuestionProgressView (currQuesAnsPair,createFlag);
+		setQuestionProgressView (currQuesAnsPair);
 		entryAnim();
 	}
-	//Animation methods
-	public override void entryAnim(){
-		//For entry animation
-	}
-	public override void exitAnim(){
-		//For exit animation
-	}
-	public override void correctAnsAnim(){
-		//For correct answer animation
-	}
-	public override void incorrectAnsAnim(){
-		//For incorrect animation
-	}
-
 
 	//Setting Question Views
-	public  void setQuesView(QuesAnsPair currQuesAnsPair,bool createFlag){
+	public  void setQuesView(QuesAnsPair currQuesAnsPair){
 		//For setting getCurrentQuesAnsPair.getQuesText ()on view 
 		//D var quesText = GameObject.Find("QuesText");
 		string question_text = currQuesAnsPair.getQuesText ();
@@ -182,7 +86,7 @@ public class DiagQAViewController : QuesAnsViewController {
 		}
 	}
 	//Setting Answer Views
-	public  void setAnsOpView(QuesAnsPair currQuesAnsPair,bool createFlag){
+	public  void setAnsOpView(QuesAnsPair currQuesAnsPair){
 		Answer answer = currQuesAnsPair.getAnswer ();
 		List<string> answerOption = answer.getAnsOptions ();
 		List<string> answerOptionImg = answer.getAnsOptionImgs ();
@@ -190,99 +94,26 @@ public class DiagQAViewController : QuesAnsViewController {
 			changeIndex (1);
 
 		} else {
-			if (createFlag) {
-				for (int j = 0; j < answer.getAnsOptions ().Count; j = j + 1) {
-					GameObject ansOpObject = Instantiate (ansOption);
-					ansOpObject.name = "AnsOp";
-					ansOpObject.transform.parent = qaPanelGO.transform;
-					answerOption [j] = stringWrapper.changeString (answerOption [j]);
-					ansOpObject.GetComponentInChildren<TEXDraw> ().text = answerOption [j];
+			for (int j = 0; j < answer.getAnsOptions ().Count; j = j + 1) {
+				GameObject ansOpObject = (GameObject) Instantiate (ansOption,qaPanelGO.transform);
+				ansOpObject.name = "AnsOp";
+				answerOption [j] = stringWrapper.changeString (answerOption [j]);
+				ansOpObject.GetComponentInChildren<TEXDraw> ().text = answerOption [j];
 
-					Button answerButton = ansOpObject.GetComponent<Button> ();
-					int tempInt = j;
-					answerButton.onClick.AddListener (() => AnswerSelected (tempInt));
+				Button answerButton = ansOpObject.GetComponent<Button> ();
+				int tempInt = j;
+				answerButton.onClick.AddListener (() => AnswerSelected (tempInt));
 
-					if (j == quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp) {
-						Debug.Log ("Correct answer selected + initiating tick"+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
-						GameObject tickGO = Instantiate (tickImage);
-						tickGO.name = "TickImg";
-						tickGO.transform.parent = ansOpObject.transform;
-						tickGO.transform.position = new Vector3(370f,0f , 0f);
-					} else {
-						GameObject tick = getChildGameObject (ansOpObject,"TickImg");
-						Destroy (tick);
-					}
+				if (j == quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp) {
+					Debug.Log ("Correct answer selected + initiating tick"+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
+					GameObject tickGO = (GameObject)Instantiate (tickImage,ansOpObject.transform);
+					tickGO.name = "TickImg";
+					tickGO.transform.position = new Vector3(370f,0f , 0f);
+				} else {
+					GameObject tick = getChildGameObject (ansOpObject,"TickImg");
+					Destroy (tick);
 				}
-//			} else {
-//				GameObject[] ansOpTagged = GameObject.FindGameObjectsWithTag ("AnswerOption");
-//
-//				for (int j = 0; j < Math.Min (answer.getAnsOptions ().Count, ansOpTagged.Length); j = j + 1) {
-//					GameObject ansOpObject = ansOpTagged [j];
-//					answerOption [j] = stringWrapper.changeString (answerOption [j]);
-//					ansOpObject.GetComponentInChildren<TEXDraw> ().text = answerOption [j]; 
-//
-//					Debug.Log(j+" Option text is "+answerOption [j]);
-//					//GO: Set color of user selected option to light color
-//					Debug.Log("User selected option is "+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
-//
-//					if (j == quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp) {
-//						Debug.Log ("Correct answer selected + initiating tick"+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
-//						GameObject tickGO = Instantiate (tickImage);
-//						tickGO.name = "TickImg";
-//						tickGO.transform.parent = ansOpObject.transform;
-//						tickGO.transform.position = new Vector3(370f,0f , 0f);
-//					} else {
-//						GameObject tick = getChildGameObject (ansOpObject,"TickImg");
-//						Destroy (tick);
-//					}
-//				}
-//				Debug.Log("Current Status "+answer.getAnsOptions ().Count + " tagged data "+ansOpTagged.Length);
-//				int optionDiff = ansOpTagged.Length - answer.getAnsOptions ().Count;
-//
-//				if (optionDiff == 0) {
-//					//No. of present answer option views is same as question options
-//				
-//				} else if (optionDiff > 0) {
-//					//Answer Views are more than Question answer options
-//					for (int j = Math.Min (answer.getAnsOptions ().Count, ansOpTagged.Length); j < Math.Max (answer.getAnsOptions ().Count, ansOpTagged.Length); j = j + 1) {
-//						GameObject ansOpObject = ansOpTagged [j];
-//						//GO: Destroy answerOption
-//						Destroy (ansOpObject);
-//					}
-//				
-//				} else if (optionDiff < 0) {
-//					//Answer Views are less than Question answer options
-//					for (int j = Math.Min (answer.getAnsOptions ().Count, ansOpTagged.Length); j < Math.Max (answer.getAnsOptions ().Count, ansOpTagged.Length); j = j + 1) {
-//						//GO: Create answerOption
-//						Debug.Log("Starting afresh "+answer.getAnsOptions ().Count + " tagged data "+ansOpTagged.Length);
-//						GameObject ansOpObject = Instantiate (ansOption);
-//						ansOpObject.name = "AnsOp";
-//						ansOpObject.transform.parent = GameObject.Find ("QAPanel").transform;
-//						answerOption [j] = stringWrapper.changeString (answerOption [j]);
-//						ansOpObject.GetComponentInChildren<TEXDraw> ().text = answerOption [j];
-//
-//						Button answerButton = ansOpObject.GetComponent<Button> ();
-//						int tempInt = j;
-//						answerButton.onClick.AddListener (() => AnswerSelected (tempInt));
-//
-//						Debug.Log(j+" Option text is "+answerOption [j]);
-//						//GO: Set color of user selected option to light color
-//						Debug.Log("User selected option is "+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
-//						if (j == quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp) {
-//							Debug.Log ("Correct answer selected + initiating tick"+quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp);
-//							GameObject tickGO = Instantiate (tickImage);
-//							tickGO.name = "TickImg";
-//							tickGO.transform.parent = ansOpObject.transform;
-//							tickGO.transform.position = new Vector3(370f,0f , 0f);
-//						} else {
-//							GameObject tick = getChildGameObject (ansOpObject,"TickImg");
-//							Destroy (tick);
-//						}
-//					}
-//				}
-
 			}
-
 		}
 	}
 
@@ -306,7 +137,7 @@ public class DiagQAViewController : QuesAnsViewController {
 		layout.minHeight = 1.5f*quesTexture.height;
 	}
 	//Setting question progress views
-	public void setQuestionProgressView(QuesAnsPair currQuesAnsPair,bool createFlag){
+	public void setQuestionProgressView(QuesAnsPair currQuesAnsPair){
 		currentTime = (float)currQuesAnsPair.getUserTimeTaken();
 		Debug.Log ("Setting current time " + currentTime);
 	}
@@ -317,17 +148,26 @@ public class DiagQAViewController : QuesAnsViewController {
 		setProgressBar (currentIndex, totalIndex, testProgressGO);
 	}
 
+	//Animation methods
+	public override void entryAnim(){
+		//For entry animation
+	}
+	public override void exitAnim(){
+		//For exit animation
+	}
+	public override void correctAnsAnim(){
+		//For correct answer animation
+	}
+	public override void incorrectAnsAnim(){
+		//For incorrect animation
+	}
+
 
 	//On Selection of answer
 	void AnswerSelected(int buttonNo)
 	{
 		int solved = 0;
 		Debug.Log ("Button clicked = " + buttonNo+ currentTime);
-		GameObject[] ansOps;
-		ansOps = GameObject.FindGameObjectsWithTag("AnswerOption");
-		GameObject tickGO = Instantiate (tickImage);
-		tickGO.name = "TickImg";
-		tickGO.transform.parent = ansOps[buttonNo].transform;
 		quesAnsList.getCurrentQuesAnsPair ().getAnswer ().userSelectedOp = buttonNo;
 		if (quesAnsList.getCurrentQuesAnsPair ().getAnswer ().correctAnswer (buttonNo)) {
 			solved = 3;
@@ -354,26 +194,21 @@ public class DiagQAViewController : QuesAnsViewController {
 			//Going to next question
 			if (quesAnsList.getUserIndex () < quesAnsList.getMaxIndex () - 1) {
 				int increment_index = quesAnsList.getUserIndex () + increment;
-				setQuesAnsBasedOnIndex (increment_index, true);
+				setQuesAnsBasedOnIndex (increment_index);
 
 			} else {
 				//GO: Show end of quiz page
 				Debug.Log ("End of quiz reached");
-				postQuestionAttempt ();
+				StartCoroutine(postQuestionAttempt (quesAnsList));
 			}
 		} else {
 			//Going to previous question
 			if (quesAnsList.getUserIndex() > 0) {
 				int increment_index = quesAnsList.getUserIndex () + increment;
-				setQuesAnsBasedOnIndex (increment_index, true);
+				setQuesAnsBasedOnIndex (increment_index);
 			}
 		}
 	}
-
-
-
-
-
 	//Helper Methods
 	public void setProgressBar(float current, float total, GameObject progressGO){
 		//D GameObject progressGO = GameObject.Find (gameObjectName);
@@ -434,6 +269,5 @@ public class DiagQAViewController : QuesAnsViewController {
 		setProgressBar (currentTime, maxCurrentTime, questionProgressGO);
 		//GO: Set totalTime remaining
 	}
-
 
 }

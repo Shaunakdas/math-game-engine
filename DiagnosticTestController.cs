@@ -4,18 +4,18 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class DiagnosticTestController : MonoBehaviour {
-	public GameObject getClassOptionsGO;
-	public GameObject beginGO;
-	public GameObject qAGO;
-	public GameObject userResultGO;
+	public GameObject getClassOptionsGO, beginGO, qAGO, userResultGO;
+
 	public static readonly string domain = "localhost:3000/";
 	GetClassOptions getClassOptionsObject;
 	BeginPanelHandler beginObject;
 	DiagQAViewController qAObject;
 	Animator anim;
+	public GameObject GCOPBeginBtnGO,BPBeginBtnGO,RFEPBeginBtnGO;
 	int beginPanelHash,duringPanelHash, waitingPanelHash, explainerPanelHash, openResultPanelHash;
 	// Use this for initialization
 	void Start () {
+		Debug.Log ("DiagnosticTestController start() called");
 		//Initiate animation components
 		anim = GetComponent<Animator>();
 		beginPanelHash = Animator.StringToHash("beginTrigger");
@@ -88,22 +88,22 @@ public class DiagnosticTestController : MonoBehaviour {
 		switch (APIMethodName)
 		{
 		case "GetStandard":
-			updateButtonContent ("GCOPBeginBtn", "Get Started", success);
+			updateButtonContent (GCOPBeginBtnGO, "Get Started", success);
 			break;
 		case "GetQAList":
-			updateButtonContent ("BPBeginBtn", "Lets start the test!", success);
+			updateButtonContent (BPBeginBtnGO, "Lets start the test!", success);
 			break;
 		case "PostQuestionAttempt":
-			updateButtonContent ("RFEPBeginBtn", "Get Results", success);
+			updateButtonContent (RFEPBeginBtnGO, "Get Results", success);
 			break;
 		
 		}
 	}
-	public void updateButtonContent(string gameObjectName,string text, bool interact){
+
+	public void updateButtonContent(GameObject btnGameObject,string text, bool interact){
 		//Set Button Text
-		var beginbutton = GameObject.Find(gameObjectName).GetComponent<Button> ();
-		beginbutton.GetComponentInChildren<Text>().text  = text;
-		beginbutton.interactable = interact;
+		btnGameObject.GetComponentInChildren<Text>().text  = text;
+		btnGameObject.GetComponent<Button> ().interactable = interact;
 
 	}
 }
