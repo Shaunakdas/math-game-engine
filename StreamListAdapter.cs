@@ -12,14 +12,14 @@ public class StreamListAdapter : MonoBehaviour {
 	public GameObject TopicElement;
 	public GameObject AttrElement;
 	public GameObject TitleElement;
-	public static readonly string domain = "localhost:3000/";
+	public static readonly string domain = "localhost:3000";
 
 	// Use this for initialization
 	void Start () {
 		GetStreamwiseScore();
 	}
 	public void GetStreamwiseScore(){
-		string postQuesAttemptUrl = domain + "api/homepage/get_streamwise_score_short";
+		string postQuesAttemptUrl = domain + "/api/homepage/get_streamwise_score_short";
 		WWW www;
 
 		//Creating header
