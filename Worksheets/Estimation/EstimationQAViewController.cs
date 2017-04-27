@@ -6,12 +6,12 @@ using System.Linq;
 using System;
 using SimpleJSON;
 
-public class CombinationQAViewController : QuesAnsViewController {
+public class EstimationQAViewController : QuesAnsViewController {
 	//Display Variables
 	int totalOptionCount = 4;
 	float currentTime=0,totalTime=0,maxCurrentTime = 90;
 	QuesAnsList quesAnsList ;
-	CombinationQANetworkController commonQANetworkObject;
+	EstimationQANetworkController commonQANetworkObject;
 	List<GameObject> ImageGOList,AnsOpGOList;
 
 	//Behind the scene
@@ -22,14 +22,7 @@ public class CombinationQAViewController : QuesAnsViewController {
 	//Prefabs
 	public GameObject ansOption, imagePrefab;
 
-	//Game specific GameObject
-	public GameObject sumTitleGO,submitBtnGO;
-	List<int> multipleCounter; int sumCounter;
-
-	//Game specific Prefabs
-	public GameObject ansOptionPF,ansOpMultipleHolderPF,ansOpMultipleItemPF;
-
-	// textureList to hold reference to all textures downloaded
+	//GameObject textureList to hold reference to all textures downloaded
 	List<Texture2D> textureList;
 
 	// Use this for initialization
@@ -40,7 +33,7 @@ public class CombinationQAViewController : QuesAnsViewController {
 	}
 	public override void setQAList(){
 		Debug.Log ("getQAListAPI started");
-		commonQANetworkObject = (CombinationQANetworkController) gameObject.GetComponent(typeof(CombinationQANetworkController));
+		commonQANetworkObject = (EstimationQANetworkController) gameObject.GetComponent(typeof(EstimationQANetworkController));
 		quesAnsList = new QuesAnsList();
 		commonQANetworkObject.setQAListJSON (quesAnsList);
 
@@ -51,7 +44,7 @@ public class CombinationQAViewController : QuesAnsViewController {
 	}
 	public override string postQAAttempt(){
 		Debug.Log ("postQAAttempt started");
-		commonQANetworkObject = (CombinationQANetworkController) gameObject.GetComponent(typeof(CombinationQANetworkController));
+		commonQANetworkObject = (EstimationQANetworkController) gameObject.GetComponent(typeof(EstimationQANetworkController));
 
 		return commonQANetworkObject.getQAAttemptJSON ( quesAnsList);
 	}
@@ -77,53 +70,11 @@ public class CombinationQAViewController : QuesAnsViewController {
 		if (currQuesAnsPair.getQuesImage ().Length > 0) {
 			StartCoroutine (LoadImage (@currQuesAnsPair.getQuesImage (), qaPanelGO));
 		} 
-		questionEntryAnim (questionTextGO);
 	}
 	//Setting Answer Views
 	public override  void setAnsOpView(QuesAnsPair currQuesAnsPair){
 		//Changing to answerOption
-		List<AnswerOption> ansOptionList = currQuesAnsPair.ansOptionList;
-		if (ansOptionList.Count == 0) {
-			changeQuestionIndex (1,-1);
-		} else {
-			AnsOpGOList = new List<GameObject> ();
-			multipleCounter = new List<int> ();
-			for (int j = 0; j < ansOptionList.Count; j = j + 1) {
-				multipleCounter.Add(0);
-				GameObject ansOpObject = (GameObject) InstantiateNGUIGO (ansOption,qaPanelGO.transform,"AnsOp");
-				//Setting Answer Option Text
-				ansOpObject.GetComponentInChildren<TEXDrawNGUI> ().text = base.getAnswerOptionText(currQuesAnsPair,j);
 
-				//Setting Answer option Image
-				if (ansOptionList[j].optionImg.Length > 0) {
-					ansOpObject.GetComponent<Image>().color = new Vector4(0.5F, 0.5F, 0.5F, 1);
-					StartCoroutine (LoadImage (base.getAnswerOptionImageUrl(currQuesAnsPair,j), ansOpObject));
-				}
-
-				//Setting Button onClickListener
-				UIButton answerButton = ansOpObject.GetComponent<UIButton> ();
-				int tempInt = j;
-				EventDelegate.Set(answerButton.onClick, delegate() { AnswerSelected(tempInt); });
-
-				//Keeping reference to current ansOpObject
-				AnsOpGOList.Add (ansOpObject);
-
-				answerOptionEntryAnim (ansOpObject);
-			}
-		}
-		setSumPanel ();
-	}
-	public void setSumPanel(){
-		//Update sumInt Value based on user action
-		for (int i = 0; i < AnsOpGOList.Count; i++) {
-			sumCounter += int.Parse(getQAList ().getCurrentQuesAnsPair ().ansOptionList [i].optionText) * multipleCounter [i];
-		}
-		if (sumCounter > 0) {
-			//Pending set both sumTitleGO and submitBtnGO active
-			//set sumTitleGO as sumCounter
-		} else {
-			//Pending set both sumTitleGO and submitBtnGO deactivate
-		}
 	}
 	IEnumerator LoadImage(string @Url,GameObject QAGameObject)
 	{
@@ -147,20 +98,6 @@ public class CombinationQAViewController : QuesAnsViewController {
 	public override void exitAnim(){
 		//For exit animation
 	}
-	public void questionEntryAnim(GameObject questionTextGO){
-		//For question entry animation
-		//Pending questionTextGO coming down animation
-	}
-	public override void questionExitAnim(){
-		//For exit animation
-	}
-	public  void answerOptionEntryAnim(GameObject ansOptionObj){
-		//For entry animation
-		//Pending ansOptionObj coming up animation
-	}
-	public override void answerOptionExitAnim(){
-		//For exit animation
-	}
 	public override void correctAnsAnim(){
 		//For correct answer animation
 	}
@@ -173,27 +110,11 @@ public class CombinationQAViewController : QuesAnsViewController {
 	public override void AnswerSelected(int buttonNo)
 	{
 		Debug.Log ("Button clicked = " + buttonNo+ currentTime);
-		//Adding to multiple grid if tapped on a number
-		multipleCounter[buttonNo]++;
-		GameObject ansOpMultipleHolderGO = getChildGameObject (AnsOpGOList [buttonNo], "AnsOpMultipleHolder");
-		ansOpMultipleHolderGO.AddChild (ansOpMultipleItemPF);
-		//Updating sumpanel as multiple has changed
-		setSumPanel ();
-		//Ataching (Popping multiple grid mechanism) to multiple grid
-		UIButton answerButton = ansOpMultipleHolderGO.GetComponent<UIButton> ();
-		int tempInt = buttonNo;
-		EventDelegate.Set(answerButton.onClick, delegate() { popMultipleHolder(tempInt); });
-	}
-	public void popMultipleHolder(int buttonNo){
-		//Popping multiple grid if tapped
-		GameObject ansOpMultipleHolderGO = getChildGameObject (AnsOpGOList [buttonNo], "AnsOpMultipleHolder");
-		destroyChildGOList (ansOpMultipleHolderGO);
-		multipleCounter[buttonNo]=0;
-		setSumPanel ();
-	}
-	public  void submitSelected(){
-		quesAnsList.postQuestionCalculations (3, (float)(currentTime));
-		questionExitAnim ();
+		//Selected Flag of current option set to true
+		base.setSelectionflag(quesAnsList,buttonNo);
+		//GO: Set color of user selected option to light color
+		quesAnsList.postQuestionCalculations (base.getSolutionFlag(quesAnsList,buttonNo), (float)(currentTime));
+		QuesEndAnimation(1,-1);
 		//Starting next question
 		//changeIndex(1);
 		changeQuestionIndex(1,0);

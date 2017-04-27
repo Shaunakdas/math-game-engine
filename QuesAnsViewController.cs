@@ -240,4 +240,15 @@ public class QuesAnsViewController : MonoBehaviour {
 		Debug.Log("Preferred width of " +text +" :"+ width);
 		return width;
 	}
+	/// <summary>
+	/// Get random text generated from a list of all small cap letters.
+	/// </summary>
+	public static char GetRandomLetter()
+	{
+		string chars = "abcdefghijklmnopqrstuvwxyz";
+		System.Random rand = new System.Random();
+
+		int num = rand.Next(0, chars.Length -1);
+		return chars[num];
+	}
 }
