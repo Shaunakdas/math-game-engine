@@ -17,6 +17,7 @@ public class AnswerOption  {
 	//Using optionText,optionImg,correctFlag,optionId
 	public int startOrder{get; set;}
 	public int correctOrder{get; set;}
+	public int inputOrder{get; set;}
 	public string incorrectExplaination{ get; set; }
 
 	//Combination
@@ -30,6 +31,14 @@ public class AnswerOption  {
 		optionImg = opImg;
 		optionText = opTxt;
 		correctFlag = correct;
+		optionId = opId;
+	}
+	public AnswerOption(string opTxt, string opImg, int start, int correct, int opId){
+		//SCQ type questions
+		optionImg = opImg;
+		optionText = opTxt;
+		startOrder = start;
+		correctOrder = correct;
 		optionId = opId;
 	}
 }

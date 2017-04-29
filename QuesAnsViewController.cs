@@ -116,10 +116,16 @@ public class QuesAnsViewController : MonoBehaviour {
 	public virtual void changeQuestionIndex(int increment,int updated){
 	}
 	/// <summary>
-	/// Check if answer option at given index in given QuesAnsList is correct or not
+	/// Check if answer Text in given QuesAnsList is correct or not
 	/// </summary>
 	public virtual bool answerValidated(QuesAnsList currQuesAnsList,int answerIndex){
 		return currQuesAnsList.getCurrentQuesAnsPair ().ansOptionList[answerIndex].correctFlag;
+	}
+	/// <summary>
+	/// Check if answer option at given index in given QuesAnsList is correct or not
+	/// </summary>
+	public virtual bool answerValidated(QuesAnsList currQuesAnsList,string userText){
+		return (userText == currQuesAnsList.getCurrentQuesAnsPair ().ansOptionList[0].optionText);
 	}
 	/// <summary>
 	/// Check if answer option at given index in given QuesAnsList is correct or not
@@ -131,7 +137,16 @@ public class QuesAnsViewController : MonoBehaviour {
 			return 2;
 		}
 	}
-
+	/// <summary>
+	/// Check if answer option text in given QuesAnsList is correct or not
+	/// </summary>
+	public virtual int getSolutionFlag(QuesAnsList currQuesAnsList,string userText){
+		if (answerValidated(currQuesAnsList,userText)) {
+			return 3;
+		} else {
+			return 2;
+		}
+	}
 	public virtual bool answerValidated(){
 		return true;
 	}
