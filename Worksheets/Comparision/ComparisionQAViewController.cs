@@ -74,6 +74,8 @@ public class ComparisionQAViewController : QuesAnsViewController {
 		if (currQuesAnsPair.getQuesImage ().Length > 0) {
 			StartCoroutine (LoadImage (@currQuesAnsPair.getQuesImage (), qaPanelGO));
 		} 
+		questionEntryAnim (questionTextGO);
+		submitEntryAnim (submitBtnGO);
 	}
 	//Setting Answer Views
 	public override  void setAnsOpView(QuesAnsPair currQuesAnsPair){
@@ -101,6 +103,7 @@ public class ComparisionQAViewController : QuesAnsViewController {
 				//Keeping reference to current ansOpObject
 				AnsOpGOList.Add (ansOpObject);
 				correctOrderList.Add (ansOptionList [j].correctOrder);
+				answerOptionEntryAnim (ansOpObject);
 			}
 		}
 	}
