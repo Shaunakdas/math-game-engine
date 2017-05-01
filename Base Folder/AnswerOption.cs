@@ -21,7 +21,7 @@ public class AnswerOption  {
 	public string incorrectExplaination{ get; set; }
 
 	//Combination
-
+	public int correctMultiple{get; set;}
 	//
 	//For Analytics
 	public float timeFromLastSelection {get; set;}
@@ -34,7 +34,7 @@ public class AnswerOption  {
 		optionId = opId;
 	}
 	public AnswerOption(string opTxt, string opImg, int start, int correct, int opId){
-		//SCQ type questions
+		//Comparision type questions
 		optionImg = opImg;
 		optionText = opTxt;
 		startOrder = start;

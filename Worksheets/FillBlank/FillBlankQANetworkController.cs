@@ -32,7 +32,7 @@ public class FillBlankQANetworkController : MonoBehaviour {
 	IEnumerator getQAListNetworkCall(QuesAnsList quesAnsList) {
 		commonQAViewCtrl = (FillBlankQAViewController) gameObject.GetComponent(typeof(FillBlankQAViewController));;
 		string getQuesListUrl;
-		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=4";
+		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=8";
 
 		Debug.Log("getQuesListUrl"+getQuesListUrl);
 		UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get (getQuesListUrl);
@@ -87,7 +87,7 @@ public class FillBlankQANetworkController : MonoBehaviour {
 				if ((N ["questions"] [i] ["answers"] [j] ["correct"].Value)=="true") {
 					ansOp.correctFlag = true;
 				}
-				if ((N ["questions"] [i] ["answers"] [j] ["correct_order"].Value)!= null) {
+				if ((N ["questions"] [i] ["answers"] [j] ["correct_order"].Value)!= "null") {
 					ansOp.correctOrder = int.Parse(N ["questions"] [i] ["answers"] [j] ["correct_order"].Value);
 				}
 				ansOptionListNetwork.Add (ansOp);

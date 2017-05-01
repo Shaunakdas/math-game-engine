@@ -44,7 +44,7 @@ public class ComparisionQAViewController : QuesAnsViewController {
 	}
 	public override void getQAListCallFinished(){
 		//Get QA List API finished. Now Display work can start.
-		setQuesAnsBasedOnIndex (0);
+//		setQuesAnsBasedOnIndex (0);
 	}
 	public override string postQAAttempt(){
 		Debug.Log ("postQAAttempt started");

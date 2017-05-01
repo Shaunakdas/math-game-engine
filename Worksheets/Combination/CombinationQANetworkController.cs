@@ -32,7 +32,7 @@ public class CombinationQANetworkController : MonoBehaviour {
 	IEnumerator getQAListNetworkCall(QuesAnsList quesAnsList) {
 		commonQAViewCtrl = (CombinationQAViewController) gameObject.GetComponent(typeof(CombinationQAViewController));;
 		string getQuesListUrl;
-		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=4";
+		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=3";
 
 		Debug.Log("getQuesListUrl"+getQuesListUrl);
 		UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get (getQuesListUrl);
@@ -84,11 +84,8 @@ public class CombinationQANetworkController : MonoBehaviour {
 					answerImg = "";
 				Debug.Log ("Values of i"+N ["questions"] [i] ["answers"] [j] ["image"].Value);
 				AnswerOption ansOp = new AnswerOption(N ["questions"] [i] ["answers"] [j] ["answer_text"].Value,answerImg, false,int.Parse( N ["questions"] [i] ["answers"] [j] ["short_choice_answer_id"].Value)) ;
-				if ((N ["questions"] [i] ["answers"] [j] ["correct"].Value)=="true") {
-					ansOp.correctFlag = true;
-				}
-				if ((N ["questions"] [i] ["answers"] [j] ["correct_order"].Value)!= null) {
-					ansOp.correctOrder = int.Parse(N ["questions"] [i] ["answers"] [j] ["correct_order"].Value);
+				if ((N ["questions"] [i] ["answers"] [j] ["correct_multiple"].Value)!= null) {
+					ansOp.correctMultiple = int.Parse(N ["questions"] [i] ["answers"] [j] ["correct_multiple"].Value);
 				}
 				ansOptionListNetwork.Add (ansOp);
 			}

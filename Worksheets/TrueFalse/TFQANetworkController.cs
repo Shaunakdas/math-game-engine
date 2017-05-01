@@ -32,7 +32,7 @@ public class TFQANetworkController : MonoBehaviour {
 	IEnumerator getQAListNetworkCall(QuesAnsList quesAnsList) {
 		commonQAViewCtrl = (TFQAViewController) gameObject.GetComponent(typeof(TFQAViewController));;
 		string getQuesListUrl;
-		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=4";
+		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=7";
 
 		Debug.Log("getQuesListUrl"+getQuesListUrl);
 		UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get (getQuesListUrl);
@@ -71,7 +71,7 @@ public class TFQANetworkController : MonoBehaviour {
 			string answer_description=N ["questions"][i]["answer"].Value;
 			int listIndex=i;
 			int backendId = int.Parse(N ["questions"][i]["short_choice_question_id"].Value);
-			if (N ["questions"] [i] ["question_style"].Value == "True False") {
+			if (N ["questions"] [i] ["question_style"].Value == "TrueFalse") {
 				int opCount = 2;
 				List<AnswerOption> ansOptionListNetwork = new List<AnswerOption>();
 
@@ -81,6 +81,7 @@ public class TFQANetworkController : MonoBehaviour {
 						ansOp.correctFlag = true;
 					}
 					ansOptionListNetwork.Add (ansOp);
+					Debug.Log ("Adding one answer option");
 				}
 
 				quesAnsList.add (question, ansOptionListNetwork, hint, answer_description,question_image, listIndex, backendId,question_style);

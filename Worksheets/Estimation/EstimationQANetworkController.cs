@@ -32,7 +32,7 @@ public class EstimationQANetworkController : MonoBehaviour {
 	IEnumerator getQAListNetworkCall(QuesAnsList quesAnsList) {
 		commonQAViewCtrl = (EstimationQAViewController) gameObject.GetComponent(typeof(EstimationQAViewController));;
 		string getQuesListUrl;
-		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=4";
+		getQuesListUrl = getDomainAddress () + "/api/worksheet/get_worksheet?worksheet_id=6";
 
 		Debug.Log("getQuesListUrl"+getQuesListUrl);
 		UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get (getQuesListUrl);
@@ -86,9 +86,6 @@ public class EstimationQANetworkController : MonoBehaviour {
 				AnswerOption ansOp = new AnswerOption(N ["questions"] [i] ["answers"] [j] ["answer_text"].Value,answerImg, false,int.Parse( N ["questions"] [i] ["answers"] [j] ["short_choice_answer_id"].Value)) ;
 				if ((N ["questions"] [i] ["answers"] [j] ["correct"].Value)=="true") {
 					ansOp.correctFlag = true;
-				}
-				if ((N ["questions"] [i] ["answers"] [j] ["correct_order"].Value)!= null) {
-					ansOp.correctOrder = int.Parse(N ["questions"] [i] ["answers"] [j] ["correct_order"].Value);
 				}
 				ansOptionListNetwork.Add (ansOp);
 			}
